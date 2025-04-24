@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "name": "Buddy",
+    "type": "Dog",
+    "adopted": false,
+    "hunger": 50,
+    "happiness": 80
+  },
+  {
+    "id": 2,
+    "name": "Whiskers",
+    "type": "Cat",
+    "adopted": false,
+    "hunger": 40,
+    "happiness": 70
+  },
+  {
+    "id": 3,
+    "name": "Rex",
+    "type": "Dog",
+    "adopted": true,
+    "hunger": 30,
+    "happiness": 90
+  },
+  {
+    "id": 4,
+    "name": "Luna",
+    "type": "Cat",
+    "adopted": false,
+    "hunger": 60,
+    "happiness": 60
+  }
+]
