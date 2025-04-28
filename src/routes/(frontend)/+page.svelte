@@ -4,9 +4,13 @@
 
     let pets: Pet[] = [];
     let filter: 'all' | 'puppy' | 'kitten' = 'all';
+    let displayedPets: Pet[] = [];
 
-    // Fetch pets from API on page load
     onMount(async () => {
+        await loadPets();
+    });
+
+    async function loadPets() {
         try {
             const res = await fetch('/api/pets');
             if (res.ok) {
@@ -17,12 +21,29 @@
         } catch (err) {
             console.error('Error fetching pets:', err);
         }
-    });
+    }
 
-    // Apply filter
-    function filteredPets(): Pet[] {
-        if (filter === 'all') return pets;
-        return pets.filter(pet => pet.type === filter);
+    $: displayedPets = filter === 'all'
+        ? pets
+        : pets.filter((pet) => pet.type === filter);
+
+    async function adoptPet(id: number) {
+        const res = await fetch('/api/adopt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ petId: id })
+        });
+
+        if (res.ok) {
+            await loadPets(); // Refresh list
+        } else {
+            alert('Failed to adopt the pet.');
+        }
+    }
+
+    function handleImageError(event: Event) {
+        const target = event.target as HTMLImageElement;
+        if (target) target.src = '/images/default.jpg';
     }
 </script>
 
@@ -40,15 +61,24 @@
         padding: 0.5rem;
         border: 1px solid #ccc;
         border-radius: 6px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #ccc;
     }
     button {
-        margin-left: 1rem;
+        margin-left: auto;
     }
 </style>
 
 <h1>🐾 Pet Adoption Portal</h1>
 
-<!-- Filter dropdown -->
 <label for="filter">Filter by type:</label>
 <select id="filter" bind:value={filter}>
     <option value="all">All</option>
@@ -56,19 +86,23 @@
     <option value="kitten">Kittens</option>
 </select>
 
-<!-- List of pets -->
 <ul>
-    {#each filteredPets() as pet}
+    {#each displayedPets as pet}
         <li>
-            <strong>{pet.name}</strong> ({pet.type}) —
-            {pet.adopted ? 'Already adopted' : 'Available'}
+            <img
+                    src={`/images/${pet.name.toLowerCase()}.jpg`}
+                    alt={pet.name}
+                    on:error={handleImageError}
+            />
+
+            <div>
+                <strong>{pet.name}</strong> ({pet.type})<br />
+                {pet.adopted ? 'Already adopted' : 'Available'}
+            </div>
 
             {#if !pet.adopted}
-                <!-- Button is not functional yet -->
-                <button disabled>Adopt</button>
+                <button on:click={() => adoptPet(pet.id)}>Adopt</button>
             {/if}
         </li>
     {/each}
 </ul>
-
-
