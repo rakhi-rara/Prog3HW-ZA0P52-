@@ -14,6 +14,16 @@ const logAction = async (message: string) => {
     await fs.writeFile(logPath, JSON.stringify(logs, null, 2));
 };
 
+export const GET: RequestHandler = async ({ locals }) => {
+    if (!locals.user) {
+        return json({ error: 'Not logged in' }, { status: 401 });
+    }
+
+    const safeUser = { ...locals.user };
+    return json({ user: safeUser });
+};
+
+// POST to update budget/inventory
 export const POST: RequestHandler = async ({ request }) => {
     try {
         const { userId, budget, inventory } = await request.json();

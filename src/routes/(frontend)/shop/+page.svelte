@@ -1,87 +1,96 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import { currentUser } from '$lib/stores';
 
-    // Reactive user store
+    let error = '';
+    let success = '';
+
     $: user = $currentUser;
 
-    // Prices for each item
-    const itemPrices = {
-        food: 5,   // $5 for food
-        toy: 10,   // $10 for toy
-        treat: 3,  // $3 for treat
-    };
+    onMount(async () => {
+        try {
+            const res = await fetch('/api/users');
+            if (res.ok) {
+                const data = await res.json();
+                currentUser.set(data.user);
+            } else {
+                console.error('Failed to fetch user data');
+            }
+        } catch (err) {
+            console.error('Error fetching user data:', err);
+        }
+    });
 
-    // Implement buy function
     async function buy(item: 'food' | 'toy' | 'treat') {
-        // Check if the user is logged in
+        error = '';
+        success = '';
+
         if (!user) {
-            alert("Please log in to make a purchase.");
+            error = 'Please log in to make a purchase.';
             return;
         }
 
-        // Check if the user has enough budget for the selected item
-        const itemPrice = itemPrices[item];
-        if (user.budget < itemPrice) {
-            alert(`You don't have enough budget to buy ${item}.`);
-            return;
-        }
+        try {
+            const res = await fetch('/api/shop', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ item })
+            });
 
-        // Deduct the item's price from the user's budget
-        user.budget -= itemPrice;
+            const data = await res.json();
 
-        // Add the item to the user's inventory
-        if (user.inventory) {
-            user.inventory[item] = (user.inventory[item] || 0) + 1;
-        }
-
-        // Persist changes to the server (users.json)
-        const res = await fetch('/api/users', {
-            method: 'POST',
-            body: JSON.stringify({
-                userId: user.id,
-                budget: user.budget,
-                inventory: user.inventory,
-            }),
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
-        if (res.ok) {
-            alert(`${item} purchased successfully!`);
-        } else {
-            alert("Failed to complete the purchase.");
+            if (res.ok) {
+                currentUser.set(data.user); // reactive update
+                success = data.message;
+            } else {
+                error = data.error || 'Purchase failed.';
+            }
+        } catch (err) {
+            error = 'Something went wrong.';
         }
     }
 </script>
 
-<h1>Pet Shop</h1>
+<h1>🛍️ Pet Shop</h1>
+
+{#if success}<p style="color: green;">{success}</p>{/if}
+{#if error}<p style="color: red;">{error}</p>{/if}
 
 {#if user}
-    <p>Budget: ${user.budget}</p>
-    <p>Inventory:</p>
+    <p><strong>Budget:</strong> ${user.budget}</p>
+
+    <h2>Inventory</h2>
     <ul>
         <li>Food: {user.inventory?.food || 0}</li>
         <li>Toy: {user.inventory?.toy || 0}</li>
         <li>Treat: {user.inventory?.treat || 0}</li>
     </ul>
 
-    <button on:click={() => buy('food')}>Buy Food ($5)</button>
-    <button on:click={() => buy('toy')}>Buy Toy ($10)</button>
-    <button on:click={() => buy('treat')}>Buy Treat ($3)</button>
+    <div style="margin-top: 1rem;">
+        <button on:click={() => buy('food')}>Buy Food (−$5)</button>
+        <button on:click={() => buy('toy')}>Buy Toy (−$10)</button>
+        <button on:click={() => buy('treat')}>Buy Treat (−$15)</button>
+    </div>
 {:else}
     <p>Please log in to access the shop.</p>
 {/if}
 
 <style>
     button {
-        padding: 0.5rem;
+        padding: 0.5rem 1rem;
         font-size: 1rem;
-        margin-top: 1rem;
+        margin: 0.5rem 0.5rem 1rem 0;
+        cursor: pointer;
     }
 
-    p {
+    ul {
+        list-style: disc;
+        margin-left: 1.5rem;
+    }
+
+    h2 {
         margin-top: 1rem;
     }
 </style>
+
 
