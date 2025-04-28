@@ -1,34 +1,65 @@
 [
   {
     "id": 1,
-    "name": "Buddy",
-    "type": "Dog",
-    "adopted": false,
-    "hunger": 50,
-    "happiness": 80
+    "name": "Mocha",
+    "type": "puppy",
+    "hunger": 0,
+    "happiness": 100,
+    "adopted": true,
+    "ownerId": 4
   },
   {
     "id": 2,
-    "name": "Whiskers",
-    "type": "Cat",
-    "adopted": false,
-    "hunger": 40,
-    "happiness": 70
+    "name": "Ziggy",
+    "type": "kitten",
+    "hunger": 45,
+    "happiness": 88,
+    "adopted": true,
+    "ownerId": 2
   },
   {
     "id": 3,
-    "name": "Rex",
-    "type": "Dog",
-    "adopted": true,
+    "name": "Nala",
+    "type": "puppy",
     "hunger": 30,
-    "happiness": 90
+    "happiness": 80,
+    "adopted": true,
+    "ownerId": 5
   },
   {
     "id": 4,
-    "name": "Luna",
-    "type": "Cat",
+    "name": "Mittens",
+    "type": "kitten",
+    "hunger": 0,
+    "happiness": 100,
+    "adopted": true,
+    "ownerId": 5
+  },
+  {
+    "id": 5,
+    "name": "Barkley",
+    "type": "puppy",
+    "hunger": 35,
+    "happiness": 70,
+    "adopted": true,
+    "ownerId": 3
+  },
+  {
+    "id": 6,
+    "name": "Pixie",
+    "type": "kitten",
+    "hunger": 0,
+    "happiness": 100,
     "adopted": false,
-    "hunger": 60,
-    "happiness": 60
+    "ownerId": null
+  },
+  {
+    "id": 7,
+    "name": "Shadow",
+    "type": "puppy",
+    "hunger": 50,
+    "happiness": 60,
+    "adopted": false,
+    "ownerId": null
   }
 ]
