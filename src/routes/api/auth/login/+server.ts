@@ -1,28 +1,53 @@
-import type { RequestHandler } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import bcrypt from 'bcryptjs';
 
-export const POST: RequestHandler = async ({ request }) => {
-	const { name, password } = await request.json();
-	const filePath = path.resolve('data/users.json');
-	const raw = await readFile(filePath, 'utf-8');
-	const users = JSON.parse(raw);
+const usersPath = path.resolve('static/data/users.json');
 
-	const user = users.find((u: any) => u.name === name);
-	if (!user) {
-		return new Response(JSON.stringify({ error: 'User not found' }), { status: 401 });
-	}
+export const POST: RequestHandler = async ({ request, cookies }) => {
+	try {
+		const { name, password } = await request.json();
 
-	const isValid = await bcrypt.compare(password, user.password);
-	if (!isValid) {
-		return new Response(JSON.stringify({ error: 'Invalid password' }), { status: 401 });
-	}
-
-	return new Response(JSON.stringify(user), {
-		headers: {
-			'Content-Type': 'application/json'
+		if (!name || !password) {
+			return json({ error: 'Missing name or password' }, { status: 400 });
 		}
-	});
+
+		const raw = await readFile(usersPath, 'utf-8');
+		const users = JSON.parse(raw);
+		const user = users.find((u: any) => u.name === name);
+
+		if (!user) {
+			return json({ error: 'Invalid credentials' }, { status: 401 });
+		}
+
+		const isValid = await bcrypt.compare(password, user.passwordHash);
+
+		if (!isValid) {
+			return json({ error: 'Invalid credentials' }, { status: 401 });
+		}
+
+		cookies.set('user', String(user.id), {
+			path: '/',
+			httpOnly: true,
+			sameSite: 'strict',
+			maxAge: 60 * 60 * 24 // 1 day
+		});
+
+		// Still return the full user object for app to use
+		const safeUser = {
+			id: user.id,
+			name: user.name,
+			role: user.role,
+			budget: user.budget,
+			inventory: user.inventory ?? {}
+		};
+
+		return json({ success: true, user: safeUser });
+	} catch (err) {
+		console.error('Login error:', err);
+		return json({ error: 'Login failed' }, { status: 500 });
+	}
 };
 
